@@ -5,8 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
-	"github.com/joho/godotenv"
-	"os"
 	"time"
 )
 
@@ -24,19 +22,12 @@ type User struct {
 	Extra map[string]interface{}
 }
 
-var hasuraJwtSecret []byte
-
-func init() {
-	_ = godotenv.Load()
-	hasuraJwtSecret = []byte(os.Getenv("HASURA_JWT_SIGN_KEY"))
-}
-
-func Validate(tokenString string) (*Claims, error) {
+func Validate(secret []byte, tokenString string) (*Claims, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
-		return hasuraJwtSecret, nil
+		return secret, nil
 	})
 	if err != nil {
 		return nil, err
@@ -54,7 +45,7 @@ func Validate(tokenString string) (*Claims, error) {
 	}
 }
 
-func Generate(uid string, roles []string, user interface{}, extra map[string]interface{}, exp time.Duration) (string, error) {
+func Generate(secret []byte, uid string, roles []string, user interface{}, extra map[string]interface{}, exp time.Duration) (string, error) {
 	expirationTime := time.Now().Add(exp)
 	if len(roles) == 0 {
 		return "", errors.New("user should at least has one role")
@@ -80,5 +71,5 @@ func Generate(uid string, roles []string, user interface{}, extra map[string]int
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(hasuraJwtSecret)
+	return token.SignedString(secret)
 }
