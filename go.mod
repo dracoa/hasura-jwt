@@ -1,4 +1,4 @@
-module hasura-jwt
+module hjwt
 
 go 1.14
 
