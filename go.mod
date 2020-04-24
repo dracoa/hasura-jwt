@@ -1,4 +1,4 @@
-module hjwt
+module github.com/dracoa/hasura-jwt
 
 go 1.14
 
