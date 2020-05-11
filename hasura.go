@@ -49,9 +49,6 @@ func Validate(secret []byte, tokenString string) (*Claims, error) {
 
 func Generate(secret []byte, uid string, defaultRole string, roles []string, user interface{}, extra map[string]interface{}, exp time.Duration) (string, error) {
 	expirationTime := time.Now().Add(exp)
-	if len(roles) == 0 {
-		return "", errors.New("user should at least has one role")
-	}
 	hasura := make(map[string]interface{})
 	hasura[`x-hasura-allowed-roles`] = []string{defaultRole}
 	hasura[`x-hasura-default-role`] = defaultRole
