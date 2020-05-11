@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
+	"reflect"
+	"strings"
 	"time"
 )
 
@@ -45,18 +47,25 @@ func Validate(secret []byte, tokenString string) (*Claims, error) {
 	}
 }
 
-func Generate(secret []byte, uid string, roles []string, user interface{}, extra map[string]interface{}, exp time.Duration) (string, error) {
+func Generate(secret []byte, uid string, defaultRole string, roles []string, user interface{}, extra map[string]interface{}, exp time.Duration) (string, error) {
 	expirationTime := time.Now().Add(exp)
 	if len(roles) == 0 {
 		return "", errors.New("user should at least has one role")
 	}
 	hasura := make(map[string]interface{})
-	hasura[`x-hasura-allowed-roles`] = roles
-	hasura[`x-hasura-default-role`] = roles[0]
+	hasura[`x-hasura-allowed-roles`] = []string{defaultRole}
+	hasura[`x-hasura-default-role`] = defaultRole
 	hasura[`x-hasura-user-id`] = uid
-	hasura[`x-hasura-user-roles`] = roles[0]
+	roles = append(roles, defaultRole)
+	hasura[`x-hasura-user-roles`] = fmt.Sprintf(`{%s}`, strings.Join(roles, `,`))
 	for k, v := range extra {
-		hasura[fmt.Sprintf("x-hasura-user-%s", k)] = v
+		vt := reflect.TypeOf(v).String()
+		switch vt {
+		case "[]string":
+			hasura[fmt.Sprintf("x-hasura-user-%s", k)] = fmt.Sprintf(`{%s}`, strings.Join(v.([]string), `,`))
+		default:
+			hasura[fmt.Sprintf("x-hasura-user-%s", k)] = v
+		}
 	}
 
 	claims := &Claims{
