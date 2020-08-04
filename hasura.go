@@ -52,6 +52,7 @@ func Generate(secret []byte, uid string, defaultRole string, roles []string, use
 	hasura := make(map[string]interface{})
 	hasura[`x-hasura-allowed-roles`] = []string{defaultRole}
 	hasura[`x-hasura-default-role`] = defaultRole
+	hasura[`x-hasura-user-role`] = defaultRole
 	hasura[`x-hasura-user-id`] = uid
 	roles = append(roles, defaultRole)
 	hasura[`x-hasura-user-roles`] = fmt.Sprintf(`{%s}`, strings.Join(roles, `,`))
