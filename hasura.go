@@ -67,7 +67,7 @@ func Generate(secret []byte, uid string, defaultRole string, roles []string, use
 
 	claims := &Claims{
 		Uid:    uid,
-		Role:   roles[0],
+		Role:   defaultRole,
 		User:   user,
 		Hasura: hasura,
 		StandardClaims: jwt.StandardClaims{
